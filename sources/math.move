@@ -36,6 +36,14 @@ module Ultima::UltimaRationalMath {
     }
   }
 
+  public fun val(d: &Decimal): u64 {
+    d.value
+  }
+  
+  public fun scale(d: &Decimal): u64 {
+    d.scale
+  }
+
   public fun is_zero(d: &Decimal): bool {
     d.value == 0
   }
