@@ -40,7 +40,7 @@ module Ultima::UltimaRationalMath {
     d.value
   }
   
-  public fun scale(d: &Decimal): u64 {
+  public fun scale(d: &Decimal): u8 {
     d.scale
   }
 
