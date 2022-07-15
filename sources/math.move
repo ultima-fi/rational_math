@@ -1,4 +1,4 @@
-module Ultima::Decimal {
+module Ultima::UltimaRationalMath {
   use Std::Errors;
   use Std::Option::{Option, some, none};
   #[test_only]
