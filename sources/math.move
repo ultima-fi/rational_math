@@ -3,8 +3,8 @@ module Ultima::UltimaRationalMath {
   use Std::Option::{Option, some, none};
   #[test_only]
   use Std::Option::destroy_some;
-//  #[test_only]
-//  use AptosFramework::Debug;
+ // #[test_only]
+ // use AptosFramework::Debug;
 
   const MAX_U64: u128 = 18446744073709551615;
 
@@ -50,6 +50,9 @@ module Ultima::UltimaRationalMath {
 
   public fun adjust_scale(d: &mut Decimal, new_scale: u8) {
     assert!(new_scale > 0, Errors::invalid_argument(ERR_OUT_OF_RANGE));
+    if (d.scale == new_scale) {
+     return
+    };
     if (d.scale > new_scale) {
       d.value = d.value / pow(10u64, d.scale - new_scale);
       d.scale = new_scale;
@@ -223,6 +226,8 @@ module Ultima::UltimaRationalMath {
     };
     adjust_scale(&mut dec, 7);
     assert!(dec.value == 12000 && dec.scale == 7, 0);
+    adjust_scale(&mut dec, 5);
+    assert!(dec.value == 120 && dec.scale == 5, 0);
     adjust_scale(&mut dec, 5);
     assert!(dec.value == 120 && dec.scale == 5, 0);
   }
