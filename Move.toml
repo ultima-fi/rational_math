@@ -3,10 +3,9 @@ name = "UltimaRationalMath"
 version = "0.0.1"
 
 [dependencies]
-AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework/", rev = "main" }
-MoveNursery = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/move-stdlib/nursery", rev = "main" }
+AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework/", rev = "bae5c910314d7fc7359c8a0ed891609a1075af62" }
 
 [addresses]
-Ultima = "_"
+Ultima = "0x42"
 
 
