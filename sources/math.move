@@ -192,13 +192,13 @@ module Ultima::UltimaRationalMath {
   //----------------------------------------------------------
 
   #[test(account = @Ultima)]
-  public(script) fun test_new_raw() {
+  public entry fun test_new_raw() {
     let five = new(5, UNIFIED_SCALE);
     assert!(five.value == 5 && five.scale == UNIFIED_SCALE, 0)
   }
 
   #[test(account = @Ultima)]
-  public(script) fun test_denominator() {
+  public entry fun test_denominator() {
     let dec = Decimal {
       value: 1800,
       scale: 6
@@ -207,19 +207,19 @@ module Ultima::UltimaRationalMath {
   }
 
   #[test(account = @Ultima)]
-  public(script) fun test_zero() {
+  public entry fun test_zero() {
     let zero = new(0, UNIFIED_SCALE);
     assert!(is_zero(&zero), 0)
   }
 
   #[test(account = @Ultima)]
-  public(script) fun test_pow() {
+  public entry fun test_pow() {
     assert!(pow(10, 6) == 1000000, 0);
     assert!(pow(2, 10) == 1024, 0)
   }
 
   #[test(account = @Ultima)]
-  public(script) fun test_scaling() {
+  public entry fun test_scaling() {
     let dec = Decimal {
       value: 1200,
       scale: 6
@@ -233,7 +233,7 @@ module Ultima::UltimaRationalMath {
   }
 
   #[test(account = @Ultima)]
-  public(script) fun test_add() {
+  public entry fun test_add() {
     let dec1 = Decimal {
       value: 1500,
       scale: 6
@@ -248,7 +248,7 @@ module Ultima::UltimaRationalMath {
   }
 
   #[test(account = @Ultima)]
-  public(script) fun test_sub() {
+  public entry fun test_sub() {
     let dec1 = Decimal {
       value: 1300,
       scale: 6
@@ -264,7 +264,7 @@ module Ultima::UltimaRationalMath {
 
   //Needs more testing
   #[test(account = @Ultima)]
-  public(script) fun test_mul() {
+  public entry fun test_mul() {
     let dec1 = Decimal {
       value: 3000,
       scale: 6
@@ -291,7 +291,7 @@ module Ultima::UltimaRationalMath {
 
   //Needs more testing
   #[test(account = @Ultima)]
-  public(script) fun test_div() {
+  public entry fun test_div() {
     let dec1 = Decimal {
       value: 3000,
       scale: 6
@@ -339,7 +339,7 @@ module Ultima::UltimaRationalMath {
   }
 
   #[test(account = @Ultima)]
-  public(script) fun test_lt() {
+  public entry fun test_lt() {
     let dec1 = Decimal {
       value: 3000,
       scale: 3
@@ -357,7 +357,7 @@ module Ultima::UltimaRationalMath {
   }
 
   #[test(account = @Ultima)]
-  public(script) fun test_gt() {
+  public entry fun test_gt() {
     let dec1 = Decimal {
       value: 3000,
       scale: 3
@@ -375,7 +375,7 @@ module Ultima::UltimaRationalMath {
   }
 
   #[test(account = @Ultima)]
-  public(script) fun test_lte() {
+  public entry fun test_lte() {
     let dec1 = Decimal {
       value: 3000,
       scale: 3
@@ -393,7 +393,7 @@ module Ultima::UltimaRationalMath {
   }
 
   #[test(account = @Ultima)]
-  public(script) fun test_gte() {
+  public entry fun test_gte() {
     let dec1 = Decimal {
       value: 3000,
       scale: 3
@@ -411,7 +411,7 @@ module Ultima::UltimaRationalMath {
   }
 
   #[test(account = @Ultima)]
-  public(script) fun test_eq() {
+  public entry fun test_eq() {
     let dec1 = Decimal {
       value: 3000,
       scale: 3
