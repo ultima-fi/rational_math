@@ -1,8 +1,8 @@
 module Ultima::UltimaRationalMath {
-  use Std::Errors;
-  use Std::Option::{Option, some, none};
+  use std::error;
+  use std::option::{Option, some, none};
   #[test_only]
-  use Std::Option::destroy_some;
+  use std::option::destroy_some;
  // #[test_only]
  // use AptosFramework::Debug;
 
@@ -49,7 +49,7 @@ module Ultima::UltimaRationalMath {
   }
 
   public fun adjust_scale(d: &mut Decimal, new_scale: u8) {
-    assert!(new_scale > 0, Errors::invalid_argument(ERR_OUT_OF_RANGE));
+    assert!(new_scale > 0, error::invalid_argument(ERR_OUT_OF_RANGE));
     if (d.scale == new_scale) {
      return
     };
@@ -73,7 +73,7 @@ module Ultima::UltimaRationalMath {
 
   //adds two decimals of the same scale, returns none if overflow
   public fun add(d1: Decimal, d2: Decimal): Option<Decimal> {
-    assert!(d1.scale == d2.scale, Errors::invalid_argument(ERR_DIFFERENT_SCALE));
+    assert!(d1.scale == d2.scale, error::invalid_argument(ERR_DIFFERENT_SCALE));
     if ((d1.value as u128) + (d2.value as u128) > MAX_U64) {
       return none<Decimal>()
     };
@@ -85,7 +85,7 @@ module Ultima::UltimaRationalMath {
 
   //subs two decimals of the same scale, returns none if underflow
   public fun sub(larger: Decimal, smaller: Decimal): Option<Decimal> {
-    assert!(larger.scale == smaller.scale, Errors::invalid_argument(ERR_DIFFERENT_SCALE));
+    assert!(larger.scale == smaller.scale, error::invalid_argument(ERR_DIFFERENT_SCALE));
     if (larger.value < smaller.value) {
       return none<Decimal>()
     };
@@ -117,7 +117,7 @@ module Ultima::UltimaRationalMath {
     if (!round_up) {
       round = 1;
     };
-    assert!(d1.value != 0 && d2.value != 0 && d1.scale != 0 && d2.scale != 0, Errors::invalid_argument(ERR_DIV_BY_ZERO));
+    assert!(d1.value != 0 && d2.value != 0 && d1.scale != 0 && d2.scale != 0, error::invalid_argument(ERR_DIV_BY_ZERO));
     let smallerdenom = min_u64(denominator(&d1), denominator(&d2));
     if (d2.value < 2 || (((d1.value as u128) * (smallerdenom as u128)) + ((d2.value - 1) as u128)) / (d2.value as u128) - (round as u128) > MAX_U64) {
       return none<Decimal>()
@@ -133,27 +133,27 @@ module Ultima::UltimaRationalMath {
   //                     Comparisons
   //----------------------------------------------------------
   public fun lt(d1: Decimal, d2: Decimal): bool {
-    assert!(d1.scale == d2.scale, Errors::invalid_argument(ERR_DIFFERENT_SCALE));
+    assert!(d1.scale == d2.scale, error::invalid_argument(ERR_DIFFERENT_SCALE));
     return d1.value < d2.value
   }
 
   public fun gt(d1: Decimal, d2: Decimal): bool {
-    assert!(d1.scale == d2.scale, Errors::invalid_argument(ERR_DIFFERENT_SCALE));
+    assert!(d1.scale == d2.scale, error::invalid_argument(ERR_DIFFERENT_SCALE));
     return d1.value > d2.value
   }
 
   public fun lte(d1: Decimal, d2: Decimal): bool {
-    assert!(d1.scale == d2.scale, Errors::invalid_argument(ERR_DIFFERENT_SCALE));
+    assert!(d1.scale == d2.scale, error::invalid_argument(ERR_DIFFERENT_SCALE));
     return d1.value <= d2.value
   }
 
   public fun gte(d1: Decimal, d2: Decimal): bool {
-    assert!(d1.scale == d2.scale, Errors::invalid_argument(ERR_DIFFERENT_SCALE));
+    assert!(d1.scale == d2.scale, error::invalid_argument(ERR_DIFFERENT_SCALE));
     return d1.value >= d2.value
   }
 
   public fun eq(d1: Decimal, d2: Decimal): bool {
-    assert!(d1.scale == d2.scale, Errors::invalid_argument(ERR_DIFFERENT_SCALE));
+    assert!(d1.scale == d2.scale, error::invalid_argument(ERR_DIFFERENT_SCALE));
     return d1.value == d2.value
   }
 
