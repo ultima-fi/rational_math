@@ -3,8 +3,8 @@ module Ultima::UltimaRationalMath {
   use std::option::{Option, some, none};
   #[test_only]
   use std::option::destroy_some;
- // #[test_only]
- // use AptosFramework::Debug;
+//  #[test_only]
+//  use std::debug;
 
   const MAX_U64: u128 = 18446744073709551615;
 
@@ -106,8 +106,9 @@ module Ultima::UltimaRationalMath {
     if (smallerdenom < 2 || (((d1.value as u128) * (d2.value as u128)) + ((smallerdenom - 1) as u128)) / (smallerdenom as u128) > MAX_U64) {
       return none<Decimal>()
     };
+    let val = (((d1.value as u128) * (d2.value as u128)) + ((smallerdenom - 1) as u128)) / (smallerdenom as u128);
     some<Decimal>(Decimal {
-      value: ((d1.value * d2.value) + smallerdenom - 1) / smallerdenom,
+      value: (val as u64),
       scale: max_u8(d1.scale, d2.scale),
     })
   }
@@ -122,11 +123,12 @@ module Ultima::UltimaRationalMath {
     if (d2.value < 2 || (((d1.value as u128) * (smallerdenom as u128)) + ((d2.value - 1) as u128)) / (d2.value as u128) - (round as u128) > MAX_U64) {
       return none<Decimal>()
     };
+    let val = (((d1.value as u128) * (smallerdenom as u128)) + ((d2.value - 1) as u128)) / (d2.value as u128) - (round as u128);
     some<Decimal>(Decimal {
-      value: ((d1.value * smallerdenom) + d2.value - 1) / d2.value - round,
+      value: (val as u64),
       scale: max_u8(d1.scale, d2.scale),
     })
-    
+
   }
 
   //----------------------------------------------------------
@@ -287,6 +289,17 @@ module Ultima::UltimaRationalMath {
     let maybe2 = mul(dec3, dec4);
     let result2 = destroy_some(maybe2);
     assert!(result2.value == 27000 && result2.scale == 6, 0);
+    let dec5 = Decimal {
+      value: 72000000000,
+      scale: 8
+    };
+    let dec6 = Decimal {
+      value: 700000000,
+      scale: 8
+    };
+    let maybe = mul(dec5, dec6);
+    let result = destroy_some(maybe);
+    assert!(result.value == 504000000000 && result.scale == 8, 0);
   }
 
   //Needs more testing
@@ -336,6 +349,17 @@ module Ultima::UltimaRationalMath {
     let maybe2 = div(dec7, dec8, false);
     let result2 = destroy_some(maybe2);
     assert!(result2.value == 333 && result2.scale == 6, 0);
+    let dec9 = Decimal {
+      value: 720000000000,
+      scale: 8
+    };
+    let dec10 = Decimal {
+      value: 720000000,
+      scale: 8
+    };
+    let maybe = div(dec9, dec10, true);
+    let result = destroy_some(maybe);
+    assert!(result.value == 100000000000 && result.scale == 8, 0);
   }
 
   #[test(account = @Ultima)]
