@@ -1,19 +1,16 @@
 module Ultima::UltimaRationalMath {
   use std::error;
-  use std::option::{Option, some, none};
-  #[test_only]
-  use std::option::destroy_some;
 //  #[test_only]
 //  use std::debug;
 
-  const MAX_U64: u128 = 18446744073709551615;
+  const MAX_U128: u128 = 340282366920938463463374607431768211455;
 
   const ERR_DIV_BY_ZERO: u64 = 0;
   const ERR_OUT_OF_RANGE: u64 = 1;
   const ERR_DIFFERENT_SCALE: u64 = 2;
 
   struct Decimal has drop, copy, store {
-    value: u64,
+    value: u128,
     scale: u8
   }
 
@@ -29,14 +26,14 @@ module Ultima::UltimaRationalMath {
   //                      Utilities
   //----------------------------------------------------------
 
-  public fun new(v: u64, s: u8): Decimal {
+  public fun new(v: u128, s: u8): Decimal {
     Decimal {
       value: v,
       scale: s,
     }
   }
 
-  public fun val(d: &Decimal): u64 {
+  public fun val(d: &Decimal): u128 {
     d.value
   }
   
@@ -54,17 +51,17 @@ module Ultima::UltimaRationalMath {
      return
     };
     if (d.scale > new_scale) {
-      d.value = d.value / pow(10u64, d.scale - new_scale);
+      d.value = d.value / pow(10u128, d.scale - new_scale);
       d.scale = new_scale;
     }
     else {
-      d.value = d.value * pow(10u64, new_scale - d.scale);
+      d.value = d.value * pow(10u128, new_scale - d.scale);
       d.scale = new_scale;
     }
   }
 
-  public fun denominator(d: &Decimal): u64 {
-    pow(10u64, d.scale)
+  public fun denominator(d: &Decimal): u128 {
+    pow(10u128, d.scale)
   }
 
   //----------------------------------------------------------
@@ -72,63 +69,48 @@ module Ultima::UltimaRationalMath {
   //----------------------------------------------------------
 
   //adds two decimals of the same scale, returns none if overflow
-  public fun add(d1: Decimal, d2: Decimal): Option<Decimal> {
+  public fun add(d1: Decimal, d2: Decimal): Decimal {
     assert!(d1.scale == d2.scale, error::invalid_argument(ERR_DIFFERENT_SCALE));
-    if ((d1.value as u128) + (d2.value as u128) > MAX_U64) {
-      return none<Decimal>()
-    };
-    some<Decimal>(Decimal {
+    Decimal {
       value: d1.value + d2.value,
       scale: d1.scale,
-    })
+    }
   }
 
   //subs two decimals of the same scale, returns none if underflow
-  public fun sub(larger: Decimal, smaller: Decimal): Option<Decimal> {
+  public fun sub(larger: Decimal, smaller: Decimal): Decimal {
     assert!(larger.scale == smaller.scale, error::invalid_argument(ERR_DIFFERENT_SCALE));
-    if (larger.value < smaller.value) {
-      return none<Decimal>()
-    };
-    some<Decimal>(Decimal {
+    Decimal {
       value: larger.value - smaller.value,
       scale: larger.scale,
-    })
+    }
   }
 
 
 
-  //Returns none if MAX_u64 is exceeded but can't check if
+  //Returns none if MAX_u128 is exceeded but can't check if
   //the operations will exceed MAX_U128, care required.
 
   //Don't trust either of the folling functions yet, they very likely need refinement
-  public fun mul(d1: Decimal, d2: Decimal): Option<Decimal> {
-    let smallerdenom = min_u64(denominator(&d1), denominator(&d2));
-    if (smallerdenom < 2 || (((d1.value as u128) * (d2.value as u128)) + ((smallerdenom - 1) as u128)) / (smallerdenom as u128) > MAX_U64) {
-      return none<Decimal>()
-    };
-    let val = (((d1.value as u128) * (d2.value as u128)) + ((smallerdenom - 1) as u128)) / (smallerdenom as u128);
-    some<Decimal>(Decimal {
-      value: (val as u64),
+  public fun mul(d1: Decimal, d2: Decimal): Decimal {
+    let smallerdenom = min_u128(denominator(&d1), denominator(&d2));
+    Decimal {
+      value: ((d1.value * d2.value) + (smallerdenom - 1)) / smallerdenom,
       scale: max_u8(d1.scale, d2.scale),
-    })
+    }
   }
 
-  public fun div(d1: Decimal, d2: Decimal, round_up: bool): Option<Decimal> {
+  public fun div(d1: Decimal, d2: Decimal, round_up: bool): Decimal {
     let round = 0;
     if (!round_up) {
       round = 1;
     };
     assert!(d1.value != 0 && d2.value != 0 && d1.scale != 0 && d2.scale != 0, error::invalid_argument(ERR_DIV_BY_ZERO));
-    let smallerdenom = min_u64(denominator(&d1), denominator(&d2));
-    if (d2.value < 2 || (((d1.value as u128) * (smallerdenom as u128)) + ((d2.value - 1) as u128)) / (d2.value as u128) - (round as u128) > MAX_U64) {
-      return none<Decimal>()
-    };
-    let val = (((d1.value as u128) * (smallerdenom as u128)) + ((d2.value - 1) as u128)) / (d2.value as u128) - (round as u128);
-    some<Decimal>(Decimal {
-      value: (val as u64),
+    let smallerdenom = min_u128(denominator(&d1), denominator(&d2));
+    Decimal {
+      value: ((d1.value * smallerdenom) + (d2.value - 1)) / d2.value - round,
       scale: max_u8(d1.scale, d2.scale),
-    })
-
+    }
   }
 
   //----------------------------------------------------------
@@ -164,9 +146,9 @@ module Ultima::UltimaRationalMath {
   //                       Internal
   //----------------------------------------------------------
 
-  fun pow(base: u64, exp: u8): u64 {
+  fun pow(base: u128, exp: u8): u128 {
     let count: u8 = 1;
-    let val: u64 = base;
+    let val: u128 = base;
     while (count < exp) {
       val = val * base;
       count = count + 1;
@@ -174,7 +156,7 @@ module Ultima::UltimaRationalMath {
     val
   }
 
-  fun min_u64(first: u64, second: u64): u64 {
+  fun min_u128(first: u128, second: u128): u128 {
     if (first < second) {
       return first
     } else {
@@ -244,9 +226,22 @@ module Ultima::UltimaRationalMath {
       value: 1500,
       scale: 6
     };
-    let maybe = add(dec1, dec2);
-    let result = destroy_some(maybe);
+    let result = add(dec1, dec2);
     assert!(result.value == 3000 && result.scale == 6, 0);
+  }
+
+  #[test(account = @Ultima)]
+  #[expected_failure]
+  public entry fun test_add_aborts_on_overflow() {
+    let dec3 = Decimal {
+      value: 340282366920938463463374607431768211455,
+      scale: 6
+    };
+    let dec4 = Decimal {
+      value: 1,
+      scale: 6
+    };
+    add(dec3, dec4);
   }
 
   #[test(account = @Ultima)]
@@ -259,9 +254,22 @@ module Ultima::UltimaRationalMath {
       value: 300,
       scale: 6
     };
-    let maybe = sub(dec1, dec2);
-    let result = destroy_some(maybe);
+    let result = sub(dec1, dec2);
     assert!(result.value == 1000 && result.scale == 6, 0);
+  }
+
+   #[test(account = @Ultima)]
+  #[expected_failure]
+  public entry fun test_sub_aborts_on_underflow() {
+    let dec1 = Decimal {
+      value: 10,
+      scale: 6
+    };
+    let dec2 = Decimal {
+      value: 11,
+      scale: 6
+    };
+    sub(dec1, dec2);
   }
 
   //Needs more testing
@@ -275,8 +283,7 @@ module Ultima::UltimaRationalMath {
       value: 9000,
       scale: 3
     };
-    let maybe = mul(dec1, dec2);
-    let result = destroy_some(maybe);
+    let result = mul(dec1, dec2);
     assert!(result.value == 27000 && result.scale == 6, 0);
     let dec3 = Decimal {
       value: 3000,
@@ -286,8 +293,7 @@ module Ultima::UltimaRationalMath {
       value: 9000,
       scale: 6
     };
-    let maybe2 = mul(dec3, dec4);
-    let result2 = destroy_some(maybe2);
+    let result2 = mul(dec3, dec4);
     assert!(result2.value == 27000 && result2.scale == 6, 0);
     let dec5 = Decimal {
       value: 72000000000,
@@ -297,9 +303,23 @@ module Ultima::UltimaRationalMath {
       value: 700000000,
       scale: 8
     };
-    let maybe = mul(dec5, dec6);
-    let result = destroy_some(maybe);
+    let result = mul(dec5, dec6);
     assert!(result.value == 504000000000 && result.scale == 8, 0);
+  }
+
+  //Needs more testing
+  #[test(account = @Ultima)]
+  #[expected_failure]
+  public entry fun test_mul_aborts_on_overflow() {
+    let dec1 = Decimal {
+      value: 3402823669209384634633746074317682114,
+      scale: 6
+    };
+    let dec2 = Decimal {
+      value: 200,
+      scale: 6
+    };
+    mul(dec1, dec2);
   }
 
   //Needs more testing
@@ -313,8 +333,7 @@ module Ultima::UltimaRationalMath {
       value: 9000,
       scale: 3
     };
-    let maybe = div(dec1, dec2, true);
-    let result = destroy_some(maybe);
+    let result = div(dec1, dec2, true);
     assert!(result.value == 334 && result.scale == 6, 0);
     let dec3 = Decimal {
       value: 3000,
@@ -324,8 +343,7 @@ module Ultima::UltimaRationalMath {
       value: 9000,
       scale: 6
     };
-    let maybe2 = div(dec3, dec4, true);
-    let result2 = destroy_some(maybe2);
+    let result2 = div(dec3, dec4, true);
     assert!(result2.value == 334 && result2.scale == 6, 0);
     let dec5 = Decimal {
       value: 3000,
@@ -335,8 +353,7 @@ module Ultima::UltimaRationalMath {
       value: 9000,
       scale: 3
     };
-    let maybe = div(dec5, dec6, false);
-    let result = destroy_some(maybe);
+    let result = div(dec5, dec6, false);
     assert!(result.value == 333 && result.scale == 6, 0);
     let dec7 = Decimal {
       value: 3000,
@@ -346,8 +363,7 @@ module Ultima::UltimaRationalMath {
       value: 9000,
       scale: 6
     };
-    let maybe2 = div(dec7, dec8, false);
-    let result2 = destroy_some(maybe2);
+    let result2 = div(dec7, dec8, false);
     assert!(result2.value == 333 && result2.scale == 6, 0);
     let dec9 = Decimal {
       value: 720000000000,
@@ -357,8 +373,7 @@ module Ultima::UltimaRationalMath {
       value: 720000000,
       scale: 8
     };
-    let maybe = div(dec9, dec10, true);
-    let result = destroy_some(maybe);
+    let result = div(dec9, dec10, true);
     assert!(result.value == 100000000000 && result.scale == 8, 0);
   }
 
