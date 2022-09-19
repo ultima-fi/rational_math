@@ -1,0 +1,32 @@
+name: Build and test Aptos Move modules
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-test:
+    name: Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Get Aptos
+        uses: pontem-network/get-aptos@main
+        with:
+          version: latest
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build
+        run: aptos move compile --named-addresses Ultima=0xabac05
+
+      - name: Test
+        run: aptos move test --named-addresses Ultima=0xabac05

@@ -1,5 +1,14 @@
 # Decimal Lib
 
+## Building and testing
+
+Install the [Aptos CLI](https://aptos.dev/cli-tools/aptos-cli-tool/install-aptos-cli) then:
+
+```
+aptos move compile --named-addresses Ultima=<address>
+aptos move test --named-addresses Ultima=<address>
+```
+
 ## Features
 
 #### Structs
