@@ -101,15 +101,26 @@ module Ultima::UltimaRationalMath {
   }
 
   public fun div(d1: Decimal, d2: Decimal, round_up: bool): Decimal {
+    assert!(d2.value != 0, error::invalid_argument(ERR_DIV_BY_ZERO));
+    let scale = max_u8(d1.scale, d2.scale);
+    
+    if (d1.value == 0) {
+      return Decimal {
+        value: 0,
+        scale
+      }
+    };
+
     let round = 0;
     if (!round_up) {
       round = 1;
     };
-    assert!(d1.value != 0 && d2.value != 0 && d1.scale != 0 && d2.scale != 0, error::invalid_argument(ERR_DIV_BY_ZERO));
+
     let smallerdenom = min_u128(denominator(&d1), denominator(&d2));
+
     Decimal {
       value: ((d1.value * smallerdenom) + (d2.value - 1)) / d2.value - round,
-      scale: max_u8(d1.scale, d2.scale),
+      scale
     }
   }
 
