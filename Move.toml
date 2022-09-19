@@ -6,6 +6,6 @@ version = "0.0.1"
 AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework/", rev = "8399cd1c7b9662d3a6a09c28363c5f66f0839c41" }
 
 [addresses]
-Ultima = "0x42"
+Ultima = "_"
 
 
