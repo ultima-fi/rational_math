@@ -422,29 +422,46 @@ module Ultima::UltimaRationalMath {
 
   #[test(account = @Ultima)]
   public entry fun explicit_sanity_test_for_difference_between_floor_and_ceiling_div() {
-    let dec5 = Decimal {
+    let dec1 = Decimal {
       value: 3000,
       scale: 3
     };
-    let dec6 = Decimal {
+    let dec2 = Decimal {
       value: 9000,
       scale: 3
     };
-    let result = div_floor(dec5, dec6);
+    let result = div_floor(dec1, dec2);
     debug::print<Decimal>(&result);
     assert!(result.value == 333 && result.scale == 3, 0);
-
-    let dec5 = Decimal {
-      value: 3000,
-      scale: 3
-    };
-    let dec6 = Decimal {
-      value: 9000,
-      scale: 3
-    };
-    let result = div_ceiling(dec5, dec6);
+    let result = div_ceiling(dec1, dec2);
     debug::print<Decimal>(&result);
     assert!(result.value == 334 && result.scale == 3, 0);
+
+    let dec3 = Decimal {
+      value: 720000000000,
+      scale: 8
+    };
+    let dec4 = Decimal {
+      value: 720000000,
+      scale: 8
+    };
+    let result = div_ceiling(dec3, dec4);
+    assert!(result.value == 100000000000 && result.scale == 8, 0);
+    let result = div_floor(dec3, dec4);
+    assert!(result.value == 100000000000 && result.scale == 8, 0);
+
+    let dec5 = Decimal {
+      value: 1000000000,
+      scale: 8
+    };
+    let dec6 = Decimal {
+      value: 100000000,
+      scale: 8
+    };
+    let result = div_ceiling(dec5, dec6);
+    assert!(result.value == 1000000000 && result.scale == 8, 0);
+    let result = div_floor(dec5, dec6);
+    assert!(result.value == 1000000000 && result.scale == 8, 0);
   }
 
   #[test(account = @Ultima)]
