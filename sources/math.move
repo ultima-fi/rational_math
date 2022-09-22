@@ -1,7 +1,7 @@
 module Ultima::UltimaRationalMath {
   use std::error;
-  //#[test_only]
-  //use std::debug;
+  #[test_only]
+  use std::debug;
 
   const MAX_U128: u128 = 340282366920938463463374607431768211455;
 
@@ -95,8 +95,8 @@ module Ultima::UltimaRationalMath {
     }
   }
 
-  //divides two decimals, can handle different scales
-  public fun div(d1: Decimal, d2: Decimal, ceiling_div: bool): Decimal {
+  //divides two decimals with floor div, can handle different scales
+  public fun div_floor(d1: Decimal, d2: Decimal): Decimal {
     assert!(d2.value != 0, error::invalid_argument(ERR_DIV_BY_ZERO));
     let scale = max_u8(d1.scale, d2.scale);
     
@@ -107,15 +107,30 @@ module Ultima::UltimaRationalMath {
       }
     };
 
-    let adjust_divisor = 0;
-    if (ceiling_div) {
-      adjust_divisor = 1;
+    let smallerdenom = min_u128(denominator(&d1), denominator(&d2));
+
+    Decimal {
+      value: (d1.value * smallerdenom) / d2.value,
+      scale
+    }
+  }
+
+  //divides two decimals with ceiling div
+  public fun div_ceiling(d1: Decimal, d2: Decimal): Decimal {
+    assert!(d2.value != 0, error::invalid_argument(ERR_DIV_BY_ZERO));
+    let scale = max_u8(d1.scale, d2.scale);
+    
+    if (d1.value == 0) {
+      return Decimal {
+        value: 0,
+        scale
+      }
     };
 
     let smallerdenom = min_u128(denominator(&d1), denominator(&d2));
 
     Decimal {
-      value: ((d1.value * smallerdenom) + (d2.value - 1)) / (d2.value - adjust_divisor),
+      value: ((d1.value * smallerdenom) + (d2.value - 1)) / d2.value,
       scale
     }
   }
@@ -291,6 +306,7 @@ module Ultima::UltimaRationalMath {
       scale: 3
     };
     let result = mul(dec1, dec2);
+    //debug::print<Decimal>(&result);
     assert!(result.value == 27000 && result.scale == 6, 0);
     let dec3 = Decimal {
       value: 3000,
@@ -331,7 +347,57 @@ module Ultima::UltimaRationalMath {
 
   //Needs more testing
   #[test(account = @Ultima)]
-  public entry fun test_div() {
+  public entry fun test_div_floor() {
+
+    let dec1 = Decimal {
+      value: 5000,
+      scale: 3
+    };
+    let dec2 = Decimal {
+      value: 5000,
+      scale: 3
+    };
+    let result = div_floor(dec1, dec2);
+    //debug::print<Decimal>(&result);
+    assert!(result.value == 1000 && result.scale == 3, 0);
+
+    let dec5 = Decimal {
+      value: 3000,
+      scale: 6
+    };
+    let dec6 = Decimal {
+      value: 9000,
+      scale: 3
+    };
+    let result = div_floor(dec5, dec6);
+    assert!(result.value == 333 && result.scale == 6, 0);
+    
+    let dec7 = Decimal {
+      value: 3000,
+      scale: 3
+    };
+    let dec8 = Decimal {
+      value: 9000,
+      scale: 6
+    };
+    let result2 = div_floor(dec7, dec8);
+    assert!(result2.value == 333 && result2.scale == 6, 0);
+    
+    let dec9 = Decimal {
+      value: 720000000000,
+      scale: 8
+    };
+    let dec10 = Decimal {
+      value: 720000000,
+      scale: 8
+    };
+    let result = div_floor(dec9, dec10);
+    //debug::print<Decimal>(&result);
+    assert!(result.value == 100000000000 && result.scale == 8, 0);
+  }
+  
+  #[test(account = @Ultima)]
+  public entry fun test_div_ceiling() {
     let dec1 = Decimal {
       value: 3000,
       scale: 6
@@ -340,7 +406,7 @@ module Ultima::UltimaRationalMath {
       value: 9000,
       scale: 3
     };
-    let result = div(dec1, dec2, true);
+    let result = div_ceiling(dec1, dec2);
     assert!(result.value == 334 && result.scale == 6, 0);
     let dec3 = Decimal {
       value: 3000,
@@ -350,53 +416,35 @@ module Ultima::UltimaRationalMath {
       value: 9000,
       scale: 6
     };
-    let result2 = div(dec3, dec4, true);
+    let result2 = div_ceiling(dec3, dec4);
     assert!(result2.value == 334 && result2.scale == 6, 0);
+  }
+
+  #[test(account = @Ultima)]
+  public entry fun explicit_sanity_test_for_difference_between_floor_and_ceiling_div() {
     let dec5 = Decimal {
       value: 3000,
-      scale: 6
+      scale: 3
     };
     let dec6 = Decimal {
       value: 9000,
       scale: 3
     };
-    let result = div(dec5, dec6, false);
-    assert!(result.value == 334 && result.scale == 6, 0);
-    let dec7 = Decimal {
+    let result = div_floor(dec5, dec6);
+    debug::print<Decimal>(&result);
+    assert!(result.value == 333 && result.scale == 3, 0);
+
+    let dec5 = Decimal {
       value: 3000,
       scale: 3
     };
-    let dec8 = Decimal {
+    let dec6 = Decimal {
       value: 9000,
-      scale: 6
-    };
-    let result2 = div(dec7, dec8, false);
-    assert!(result2.value == 334 && result2.scale == 6, 0);
-    let dec9 = Decimal {
-      value: 720000000000,
-      scale: 8
-    };
-    let dec10 = Decimal {
-      value: 720000000,
-      scale: 8
-    };
-    let result = div(dec9, dec10, false);
-    //debug::print<Decimal>(&result);
-    assert!(result.value == 100000000000 && result.scale == 8, 0);
-  }
-
-  #[test(account = @Ultima)]
-  public entry fun test_div_rounding_when_equal_to_one() {
-    let dec1 = Decimal {
-      value: 5000,
       scale: 3
     };
-    let dec2 = Decimal {
-      value: 5000,
-      scale: 3
-    };
-    let result = div(dec1, dec2, false);
-    assert!(result.value == 1000 && result.scale == 3, 0);
+    let result = div_ceiling(dec5, dec6);
+    debug::print<Decimal>(&result);
+    assert!(result.value == 334 && result.scale == 3, 0);
   }
 
   #[test(account = @Ultima)]
