@@ -1,7 +1,7 @@
 module Ultima::UltimaRationalMath {
   use std::error;
-//  #[test_only]
-//  use std::debug;
+  //#[test_only]
+  //use std::debug;
 
   const MAX_U128: u128 = 340282366920938463463374607431768211455;
 
@@ -86,12 +86,7 @@ module Ultima::UltimaRationalMath {
     }
   }
 
-
-
-  //Returns none if MAX_u128 is exceeded but can't check if
-  //the operations will exceed MAX_U128, care required.
-
-  //Don't trust either of the folling functions yet, they very likely need refinement
+  //multiplies two decimals, can handle different scales, can overflow
   public fun mul(d1: Decimal, d2: Decimal): Decimal {
     let smallerdenom = min_u128(denominator(&d1), denominator(&d2));
     Decimal {
@@ -100,7 +95,8 @@ module Ultima::UltimaRationalMath {
     }
   }
 
-  public fun div(d1: Decimal, d2: Decimal, round_up: bool): Decimal {
+  //divides two decimals, can handle different scales
+  public fun div(d1: Decimal, d2: Decimal, ceiling_div: bool): Decimal {
     assert!(d2.value != 0, error::invalid_argument(ERR_DIV_BY_ZERO));
     let scale = max_u8(d1.scale, d2.scale);
     
@@ -111,15 +107,15 @@ module Ultima::UltimaRationalMath {
       }
     };
 
-    let round = 0;
-    if (!round_up) {
-      round = 1;
+    let adjust_divisor = 0;
+    if (ceiling_div) {
+      adjust_divisor = 1;
     };
 
     let smallerdenom = min_u128(denominator(&d1), denominator(&d2));
 
     Decimal {
-      value: ((d1.value * smallerdenom) + (d2.value - 1)) / d2.value - round,
+      value: ((d1.value * smallerdenom) + (d2.value - 1)) / (d2.value - adjust_divisor),
       scale
     }
   }
@@ -365,7 +361,7 @@ module Ultima::UltimaRationalMath {
       scale: 3
     };
     let result = div(dec5, dec6, false);
-    assert!(result.value == 333 && result.scale == 6, 0);
+    assert!(result.value == 334 && result.scale == 6, 0);
     let dec7 = Decimal {
       value: 3000,
       scale: 3
@@ -375,7 +371,7 @@ module Ultima::UltimaRationalMath {
       scale: 6
     };
     let result2 = div(dec7, dec8, false);
-    assert!(result2.value == 333 && result2.scale == 6, 0);
+    assert!(result2.value == 334 && result2.scale == 6, 0);
     let dec9 = Decimal {
       value: 720000000000,
       scale: 8
@@ -384,8 +380,23 @@ module Ultima::UltimaRationalMath {
       value: 720000000,
       scale: 8
     };
-    let result = div(dec9, dec10, true);
+    let result = div(dec9, dec10, false);
+    //debug::print<Decimal>(&result);
     assert!(result.value == 100000000000 && result.scale == 8, 0);
+  }
+
+  #[test(account = @Ultima)]
+  public entry fun test_div_rounding_when_equal_to_one() {
+    let dec1 = Decimal {
+      value: 5000,
+      scale: 3
+    };
+    let dec2 = Decimal {
+      value: 5000,
+      scale: 3
+    };
+    let result = div(dec1, dec2, false);
+    assert!(result.value == 1000 && result.scale == 3, 0);
   }
 
   #[test(account = @Ultima)]
