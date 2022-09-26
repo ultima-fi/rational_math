@@ -34,8 +34,30 @@ use Ultima::u256;
     }
   }
 
+  public fun new_from_u64(v: u64, s: u8): Decimal {
+    Decimal {
+      value: u256::from_u64(v),
+      scale: s,
+    }
+  }
+
+  public fun new_from_u128(v: u128, s: u8): Decimal {
+    Decimal {
+      value: u256::from_u128(v),
+      scale: s,
+    }
+  }
+
   public fun val(d: &Decimal): u256::U256 {
     d.value
+  }
+
+  public fun val_u64(d: &Decimal): u64 {
+      u256::as_u64(d.value)
+  }
+
+  public fun val_u128(d: &Decimal): u128 {
+      u256::as_u128(d.value)
   }
   
   public fun scale(d: &Decimal): u8 {
