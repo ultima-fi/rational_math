@@ -88,50 +88,44 @@ module Ultima::UltimaRationalMath {
 
   //multiplies two decimals, can handle different scales, can overflow
   public fun mul(d1: Decimal, d2: Decimal): Decimal {
-    let smallerdenom = min_u128(denominator(&d1), denominator(&d2));
+    let denom = denominator(&d2);
     Decimal {
-      value: ((d1.value * d2.value) + (smallerdenom - 1)) / smallerdenom,
-      scale: max_u8(d1.scale, d2.scale),
+      value: ((d1.value * d2.value) + (denom - 1)) / denom,
+      scale: d1.scale,
     }
   }
 
   //divides two decimals with floor div, can handle different scales
   public fun div_floor(d1: Decimal, d2: Decimal): Decimal {
     assert!(d2.value != 0, error::invalid_argument(ERR_DIV_BY_ZERO));
-    let scale = max_u8(d1.scale, d2.scale);
     
     if (d1.value == 0) {
       return Decimal {
         value: 0,
-        scale
+        scale: d1.scale
       }
     };
 
-    let smallerdenom = min_u128(denominator(&d1), denominator(&d2));
-
     Decimal {
-      value: (d1.value * smallerdenom) / d2.value,
-      scale
+      value: (d1.value * denominator(&d2)) / d2.value,
+      scale: d1.scale
     }
   }
 
   //divides two decimals with ceiling div
   public fun div_ceiling(d1: Decimal, d2: Decimal): Decimal {
     assert!(d2.value != 0, error::invalid_argument(ERR_DIV_BY_ZERO));
-    let scale = max_u8(d1.scale, d2.scale);
     
     if (d1.value == 0) {
       return Decimal {
         value: 0,
-        scale
+        scale: d1.scale
       }
     };
 
-    let smallerdenom = min_u128(denominator(&d1), denominator(&d2));
-
     Decimal {
-      value: ((d1.value * smallerdenom) + (d2.value - 1)) / d2.value,
-      scale
+      value: ((d1.value * denominator(&d2)) + (d2.value - 1)) / d2.value,
+      scale: d1.scale
     }
   }
 
@@ -180,6 +174,14 @@ module Ultima::UltimaRationalMath {
 
   fun min_u128(first: u128, second: u128): u128 {
     if (first < second) {
+      return first
+    } else {
+      return second
+    }
+  }
+
+  fun max_u128(first: u128, second: u128): u128 {
+    if (first > second) {
       return first
     } else {
       return second
@@ -306,7 +308,7 @@ module Ultima::UltimaRationalMath {
       scale: 3
     };
     let result = mul(dec1, dec2);
-    //debug::print<Decimal>(&result);
+    // debug::print<Decimal>(&result);
     assert!(result.value == 27000 && result.scale == 6, 0);
     let dec3 = Decimal {
       value: 3000,
@@ -317,7 +319,7 @@ module Ultima::UltimaRationalMath {
       scale: 6
     };
     let result2 = mul(dec3, dec4);
-    assert!(result2.value == 27000 && result2.scale == 6, 0);
+    assert!(result2.value == 27 && result2.scale == 3, 0);
     let dec5 = Decimal {
       value: 72000000000,
       scale: 8
@@ -381,7 +383,7 @@ module Ultima::UltimaRationalMath {
       scale: 6
     };
     let result2 = div_floor(dec7, dec8);
-    assert!(result2.value == 333 && result2.scale == 6, 0);
+    assert!(result2.value == 333333 && result2.scale == 3, 0);
     
     let dec9 = Decimal {
       value: 720000000000,
@@ -417,7 +419,8 @@ module Ultima::UltimaRationalMath {
       scale: 6
     };
     let result2 = div_ceiling(dec3, dec4);
-    assert!(result2.value == 334 && result2.scale == 6, 0);
+    assert!(result2.value == 333334 && result2.scale == 3, 0);
+
   }
 
   #[test(account = @Ultima)]
@@ -463,6 +466,42 @@ module Ultima::UltimaRationalMath {
     let result = div_floor(dec5, dec6);
     assert!(result.value == 1000000000 && result.scale == 8, 0);
   }
+
+#[test(account = @Ultima)]
+  public entry fun test_div_fractional() {
+    let dec1 = Decimal {
+      value: 1000,
+      scale: 1
+    };
+
+    let dec2 = Decimal {
+      value: 10,
+      scale: 3
+    };
+
+    // 100.0 / .01 == 10000
+    let result = div_ceiling(dec1, dec2);
+    assert!(result.value == 100000 && result.scale == 1, 1);
+    let result = div_floor(dec1, dec2);
+    assert!(result.value == 100000 && result.scale == 1, 2);
+
+    let dec1 = Decimal {
+      value: 1000,
+      scale: 2
+    };
+
+    let dec2 = Decimal {
+      value: 10,
+      scale: 3
+    };
+
+    // 10.00 / .01 == 1000
+    let result = div_ceiling(dec1, dec2);
+    assert!(result.value == 100000 && result.scale == 2, 1);
+    let result = div_floor(dec1, dec2);
+    assert!(result.value == 100000 && result.scale == 2, 2);
+  }
+
 
   #[test(account = @Ultima)]
   public entry fun test_lt() {
