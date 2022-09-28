@@ -163,6 +163,9 @@ module Ultima::UltimaRationalMath {
   //----------------------------------------------------------
 
   fun pow(base: u128, exp: u8): u128 {
+    if (exp == 0) {
+      return 1
+    };
     let count: u8 = 1;
     let val: u128 = base;
     while (count < exp) {
@@ -222,8 +225,9 @@ module Ultima::UltimaRationalMath {
 
   #[test(account = @Ultima)]
   public entry fun test_pow() {
-    assert!(pow(10, 6) == 1000000, 0);
-    assert!(pow(2, 10) == 1024, 0)
+    assert!(pow(10, 6) == 1000000, 1);
+    assert!(pow(10, 0) == 1, 2);
+    assert!(pow(2, 10) == 1024, 3);
   }
 
   #[test(account = @Ultima)]
@@ -420,7 +424,23 @@ module Ultima::UltimaRationalMath {
     };
     let result2 = div_ceiling(dec3, dec4);
     assert!(result2.value == 333334 && result2.scale == 3, 0);
+  }
 
+  #[test(account = @Ultima)]
+  public entry fun test_zero_scale_division() {
+    let dec1 = Decimal {
+      value: 48000000000000,
+      scale: 12
+    };
+    let dec2 = Decimal {
+      value: 48,
+      scale: 0
+    };
+
+    let result = div_floor(dec1, dec2);
+    assert!(result.value == 1000000000000 && result.scale == 12, 0); // 1E12
+    let result = div_ceiling(dec1, dec2);
+    assert!(result.value == 1000000000000 && result.scale == 12, 0); // 1E12
   }
 
   #[test(account = @Ultima)]
