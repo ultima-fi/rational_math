@@ -464,6 +464,49 @@ module Ultima::UltimaRationalMath {
     assert!(result.value == 1000000000 && result.scale == 8, 0);
   }
 
+#[test(account = @Ultima)]
+  public entry fun weird_one() {
+    let dec1 = Decimal {
+      value: 1000,
+      scale: 1
+    };
+
+    let dec2 = Decimal {
+      value: 10,
+      scale: 3
+    };
+
+    // 100.0 / .01 == 10000
+    let result = div_ceiling(dec1, dec2);
+    debug::print(&result); // 1.000
+    assert!(result.value == 100000000 && result.scale == 3, 1);
+    let result = div_floor(dec1, dec2);
+    debug::print(&result); // 100.000
+    assert!(result.value == 100000000 && result.scale == 3, 2);
+  }
+
+  #[test(account = @Ultima)]
+  public entry fun weird_two() {
+    let dec1 = Decimal {
+      value: 1000,
+      scale: 2
+    };
+
+    let dec2 = Decimal {
+      value: 10,
+      scale: 3
+    };
+
+    // 10.00 / .01 == 1000
+    let result = div_ceiling(dec1, dec2);
+    debug::print(&result); // 10.00
+    assert!(result.value == 10000000 && result.scale == 3, 1);
+    let result = div_floor(dec1, dec2);
+    debug::print(&result); // 100.000
+    assert!(result.value == 10000000 && result.scale == 3, 2);
+  }
+
+
   #[test(account = @Ultima)]
   public entry fun test_lt() {
     let dec1 = Decimal {
